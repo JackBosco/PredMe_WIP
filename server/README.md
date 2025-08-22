@@ -7,7 +7,6 @@ converting them to a consistant representation.
 
 ### Server State
 
-The core API is housed in [server_state.py](./server_state.py).
 This is how we represent the data that comes in from the various markets.
 
 ### Websocket Handlers
@@ -33,7 +32,7 @@ Strictly typed datatypes for the internal server state, polymarket api, kalshi a
 To run the demo, pass a polymarket `token_id` and/or kalshi `ticker` as command line arguments to [main](./main.py) like so:
 
 ```
-uv run main.py poly 33064224357523449786613480102704635026181428303479305990935387590344871823925 kalshi KXMAYORNYCNOMD-25-AC
+uv run server/main.py poly 33064224357523449786613480102704635026181428303479305990935387590344871823925 kalshi KXMAYORNYCNOMD-25-AC
 ```
 
 ### Polymarket _token_id_ from URL
