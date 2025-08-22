@@ -1,0 +1,419 @@
+Websocket API
+Overview
+The Polymarket CLOP API provides websocket (wss) channels through which clients can get pushed updates. These endpoints allow clients to maintain almost real-time views of their orders, their trades and markets in general. There are two available channels user and market.
+
+Subscription
+To subscribe send a message including the following authenticating and intent information upon opening the connection.
+
+Field	Type	Description
+auth	Auth	see WSS Authentication
+markets	string[]	array of markets (condition IDs) to receive events for (for user channel)
+assets_ids	string[]	array of asset ids (token IDs) to receive events for (for market channel)
+type	string	id of channel to subscribe to (User or Market)
+where the auth field is of type Auth which has the form described in the WSS Authentication section below.
+
+WSS Authentication
+ Only connections to `user` channel require authentication.
+Field	Optional	Description
+apiKey	yes	Polygon account's CLOB api key
+secret	yes	Polygon account's CLOB api secret
+passphrase	yes	Polygon account's CLOB api passphrase
+User Channel
+Authenticated channel for updates related to user activities (orders, trades), filtered for authenticated user (by apiKey).
+
+SUBSCRIBE {wss-channel} user
+
+trade Message
+{
+  "asset_id": "52114319501245915516055106046884209969926127482827954674443846427813813222426",
+  "event_type": "trade",
+  "id": "28c4d2eb-bbea-40e7-a9f0-b2fdb56b2c2e",
+  "last_update": "1672290701",
+  "maker_orders": [
+    {
+      "asset_id": "52114319501245915516055106046884209969926127482827954674443846427813813222426",
+      "matched_amount": "10",
+      "order_id": "0xff354cd7ca7539dfa9c28d90943ab5779a4eac34b9b37a757d7b32bdfb11790b",
+      "outcome": "YES",
+      "owner": "9180014b-33c8-9240-a14b-bdca11c0a465",
+      "price": "0.57"
+    }
+  ],
+  "market": "0xbd31dc8a20211944f6b70f31557f1001557b59905b7738480ca09bd4532f84af",
+  "matchtime": "1672290701",
+  "outcome": "YES",
+  "owner": "9180014b-33c8-9240-a14b-bdca11c0a465",
+  "price": "0.57",
+  "side": "BUY",
+  "size": "10",
+  "status": "MATCHED",
+  "taker_order_id": "0x06bc63e346ed4ceddce9efd6b3af37c8f8f440c92fe7da6b2d0f9e4ccbc50c42",
+  "timestamp": "1672290701",
+  "trade_owner": "9180014b-33c8-9240-a14b-bdca11c0a465",
+  "type": "TRADE"
+}
+Emitted when:
+
+when a market order is matched (”MATCHED”)
+when a limit order for a user is included in a trade (”MATCHED”)
+subsequent status changes for trade (”MINED”, “CONFIRMED”, “RETRYING”, “FAILED”)
+Structure:
+
+Name	Type	Description
+asset_id	string	asset id (token ID) of taker order (market order)
+event_type	string	"trade"
+id	string	trade id
+last_update	string	time of last update to trade
+maker_orders	MakerOrder[]	array of maker order match details
+market	string	market identifier (condition ID)
+matchtime	string	time trade was matched
+outcome	string	outcome
+owner	string	api key of event owner
+price	string	price
+side	string	BUY/SELL
+size	string	size
+status	string	trade status
+taker_order_id	string	id of taker order
+timestamp	string	time of event
+trade_owner	string	api key of trade owner
+type	string	"TRADE"
+Where a MakerOrder object is of the form:
+
+Name	Type	Description
+asset_id	string	asset id of the maker order
+matched_amount	string	amount of maker order matched in trade
+order_id	string	maker order ID
+outcome	string	outcome
+owner	string	owner of marker order
+price	string	price of maker order
+order Message
+{
+  "asset_id": "52114319501245915516055106046884209969926127482827954674443846427813813222426",
+  "associate_trades": null,
+  "event_type": "order",
+  "id": "0xff354cd7ca7539dfa9c28d90943ab5779a4eac34b9b37a757d7b32bdfb11790b",
+  "market": "0xbd31dc8a20211944f6b70f31557f1001557b59905b7738480ca09bd4532f84af",
+  "order_owner": "9180014b-33c8-9240-a14b-bdca11c0a465",
+  "original_size": "10",
+  "outcome": "YES",
+  "owner": "9180014b-33c8-9240-a14b-bdca11c0a465",
+  "price": "0.57",
+  "side": "SELL",
+  "size_matched": "0",
+  "timestamp": "1672290687",
+  "type": "PLACEMENT"
+}
+Emitted when:
+
+When an order is placed (PLACEMENT)
+When an order is updated (some of it is matched) (UPDATE)
+When an order is cancelled (CANCELLATION)
+Structure:
+
+Name	Type	Description
+asset_id	string	asset ID (token ID) of order
+associate_trades	string[]	array of ids referencing trades that the order has been included in
+event_type	string	"order"
+id	string	order id
+market	string	condition ID of market
+order_owner	string	owner of order
+original_size	string	original order size
+outcome	string	outcome string
+owner	string	owner of order
+price	string	price of order
+side	string	BUY/SELL
+size_matched	string	size of order that has been matched
+timestamp	string	time of event
+type	string	PLACEMENT/UPDATE/CANCELLATION
+Market Channel
+Public channel for updates related to market updates (level 2 price data).
+
+SUBSCRIBE {wss-channel} market
+
+book Message
+{
+  "event_type": "book",
+  "asset_id": "65818619657568813474341868652308942079804919287380422192892211131408793125422",
+  "market": "0xbd31dc8a20211944f6b70f31557f1001557b59905b7738480ca09bd4532f84af",
+  "buys": [
+    { "price": ".48", "size": "30" },
+    { "price": ".49", "size": "20" },
+    { "price": ".50", "size": "15" }
+  ],
+  "sells": [
+    { "price": ".52", "size": "25" },
+    { "price": ".53", "size": "60" },
+    { "price": ".54", "size": "10" }
+  ],
+  "timestamp": "123456789000",
+  "hash": "0x0...."
+}
+Emitted When:
+
+First subscribed to market/
+When there is a trade that affects the book
+Structure:
+
+Name	Type	Description
+event_type	string	"book"
+asset_id	string	asset ID (token ID)
+market	string	condition ID of market
+timestamp	string	unix timestamp the current book generation in milliseconds (1/1,000 second)
+hash	string	hash summary of the orderbook content
+buys	OrderSummary[]	list of type {size, price} aggregate book levels for buys
+sells	OrderSummary[]	list of type {size, price} aggregate book levels for sells
+Where a OrderSummary object is of the form:
+
+Name	Type	Description
+price	string	size available at that price level
+size	string	price of the orderbook level
+price_change Message
+{
+  "asset_id": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+  "changes": [
+    {
+      "price": "0.4",
+      "side": "SELL",
+      "size": "3300"
+    },
+    {
+      "price": "0.5",
+      "side": "SELL",
+      "size": "3400"
+    },
+    {
+      "price": "0.3",
+      "side": "SELL",
+      "size": "3400"
+    }
+  ],
+  "event_type": "price_change",
+  "market": "0x5f65177b394277fd294cd75650044e32ba009a95022d88a0c1d565897d72f8f1",
+  "timestamp": "1729084877448",
+  "hash": "3cd4d61e042c81560c9037ece0c61f3b1a8fbbdd"
+}
+Emitted When:
+
+A new order is placed
+An order is cancelled
+Structure:
+
+Name	Type	Description
+event_type	string	"price_change"
+asset_id	string	asset ID (token ID)
+market	string	condition ID of market
+price	string	price level affected
+size	string	new aggregate size for price level
+side	string	buy/sell
+timestamp	string	time of event
+tick_size_change Message
+{
+"event_type": "tick_size_change",
+"asset_id": "65818619657568813474341868652308942079804919287380422192892211131408793125422",\
+"market": "0xbd31dc8a20211944f6b70f31557f1001557b59905b7738480ca09bd4532f84af",
+"old_tick_size": "0.01",
+"new_tick_size": "0.001",
+"timestamp": "100000000"
+}
+Emitted When:
+
+The minimum tick size of the market changes. This happens when the book's price reaches the limits: price > 0.96 or price < 0.04
+Structure:
+
+Name	Type	Description
+event_type	string	"price_change"
+asset_id	string	asset ID (token ID)
+market	string	condition ID of market
+old_tick_size	previous minimum tick size
+new_tick_size	string	current minimum tick size
+side	string	buy/sell
+timestamp	string	time of event
+Timeseries Data
+The CLOB provides detailed price history data for each traded token.
+
+HTTP Request
+GET {clob-endpoint}/prices-history
+
+Query Parameters
+Name	Type	Description
+market	number	the CLOB token id for which to fetch price history
+startTs	number	the start time, a unix timestamp in UTC
+endTs	number	the end time, a unix timestamp in UTC
+interval	string	a string representing a duration ending at the current time
+fidelity	number	the resolution of the data, in minutes
+The query parameters startTs/endTs are mutually exclusive to interval. The options for interval are:
+
+1m: 1 month
+1w: 1 week
+1d: 1 day
+6h: 6 hours
+1h: 1 hour
+max: max range
+Example Response Format
+Name	Type	Description
+history	TimeseriesPoint[]	list of timestamp/price pairs
+A TimeseriesPoint object is of the form:
+
+Name	Type	Description
+t	number	utc timestamp
+p	number	price
+Gamma Markets API
+Overview
+All market data necessary for market resolution is available on-chain (ie ancillaryData in UMA OO request) but Polymarket also provides a hosted service, Gamma, that indexes this data and provides additional market metadata (ie categorization, indexed volume, etc). This service is made available through a REST API. For public users, this resource is read only and can be used to fetch useful information about markets for things like non-profit research projects, alternative trading interfaces, automated trading systems etc.
+
+Endpoint
+https://gamma-api.polymarket.com
+
+Market Organization
+Gamma provides some organizational models. These include events, and markets. The most fundamental element is always markets and the other models simply provide additional organization.
+
+Detail
+Market
+Contains data related to a market that is traded on. Maps onto a pair of clob token ids, a market maker address, a question id and a condition id
+Event
+Contains a set of markets
+Variants:
+Event with 1 market (i.e. resulting in an SMP)
+Event with 2 or more markets (i.e. resulting in an GMP)
+Example
+[Event] Where will Barron Trump attend College?
+[Market] Will Barron attend Georgetown?
+[Market] Will Barron attend NYU?
+[Market] Will Barron attend UPenn?
+[Market] Will Barron attend Harvard?
+[Market] Will Barron attend another college?
+Markets
+Get markets.
+
+Note: Markets can be traded via the CLOB if enableOrderBook is true.
+
+HTTP Request
+GET {gamma-endpoint}/markets
+
+Query Parameters
+Name	Type	Description
+limit	number	limit query results
+offset	number	pagination offset
+order	string	key to sort by
+ascending	boolean	sort direction, defaults to true, requires the order parameter
+id	number	id of a single market to query, can be used multiple times to fetch multiple markets
+slug	string	slug of a single event to query, can be used multiple times to fetch multiple markets
+archived	boolean	filter by archived status
+active	boolean	filter by active status
+closed	boolean	filter by closed status
+clob_token_ids	string	filter by clob token id, can be used multiple times
+condition_ids	string	filter by condition id, can be used multiple times
+liquidity_num_min	decimal	filter by minimum liquidity
+liquidity_num_max	decimal	filter by maximum liquidity
+volume_num_min	decimal	filter by minimum volume
+volume_num_max	decimal	filter by maximum volume
+start_date_min	string	filter by minimum start date
+start_date_max	string	filter by maximum start date
+end_date_min	string	filter by minimum end date
+end_date_max	string	filter by maximum end date
+tag_id	number	filter by tag id
+related_tags	boolean	include events with related tags, requires the tag_id parameter
+Example Queries
+/markets
+/markets?offset=1
+/markets?limit=100
+/markets?order=slug
+/markets?order=slug&ascending=false
+/markets?id=1
+/markets?id=1&id=2
+/markets?slug=market-slug
+/markets?slug=market-slug&slug=slug
+/markets?archived=true
+/markets?closed=true
+/markets?active=true
+/markets?clob_token_ids=1
+/markets?clob_token_ids=1&clob_token_ids=2
+/markets?condition_ids=1
+/markets?condition_ids=1&condition_ids=2
+/markets?liquidity_num_min=1.0
+/markets?liquidity_num_max=2.0
+/markets?volume_num_min=1.0
+/markets?volume_num_max=2.0
+/markets?start_date_min=2022-04-01T00:00:00Z
+/markets?start_date_max=2022-04-01T00:00:00Z
+/markets?end_date_min=2022-04-01T00:00:00Z
+/markets?end_date_max=2022-04-01T00:00:00Z
+/markets?tag_id=1&related_tags=true
+Example Response Format
+Name	Type	Description
+markets	Market[]	list of markets
+Single Market
+Get a single event by id.
+
+HTTP Request
+GET {gamma-endpoint}/markets/{id}
+
+Example Query
+/markets/501011
+Events
+Get events.
+
+HTTP Request
+GET {gamma-endpoint}/events
+
+Query Parameters
+Name	Type	Description
+limit	number	limit query results
+offset	number	pagination offset
+order	string	key to sort by
+ascending	boolean	sort direction, defaults to true, requires the order parameter
+id	number	id of a single event to query, can be used multiple times to fetch multiple events
+slug	string	slug of a single event to query, can be used multiple times to fetch multiple events
+archived	boolean	filter by archived status
+active	boolean	filter by active status
+closed	boolean	filter by closed status
+liquidity_min	decimal	filter by minimum liquidity
+liquidity_max	decimal	filter by maximum liquidity
+volume_min	decimal	filter by minimum volume
+volume_max	decimal	filter by maximum volume
+start_date_min	string	filter by minimum start date
+start_date_max	string	filter by maximum start date
+end_date_min	string	filter by minimum end date
+end_date_max	string	filter by maximum end date
+tag	string	filter by tag labels
+tag_id	number	filter by tag id
+related_tags	boolean	include events with related tags, requires the tag_id parameter
+tag_slug	string	filter by tag slug
+ The tags filters are mutually exclusive with priority `tag` > `tag_id` > `tag_slug`.
+Example Queries
+/events
+/events?offset=1
+/events?limit=100
+/events?order=slug
+/events?order=slug&ascending=false
+/events?id=1
+/events?id=1&id=2
+/events?slug=market-slug
+/events?slug=market-slug&slug=slug
+/events?archived=true
+/events?closed=true
+/events?active=true
+/events?clob_token_ids=tokenid
+/events?condition_ids=condition
+/events?liquidity_min=1.0
+/events?liquidity_max=2.0
+/events?volume_min=1.0
+/events?volume_max=2.0
+/events?start_date_min=2022-04-01T00:00:00Z
+/events?start_date_max=2022-04-01T00:00:00Z
+/events?end_date_min=2022-04-01T00:00:00Z
+/events?end_date_max=2022-04-01T00:00:00Z
+/events?tag=music
+/events?tag_id=1
+/events?tag_id=1&related_tags=true
+Example Response Format
+Name	Type	Description
+events	Event[]	list of events
+Single Event
+Get a single event by id.
+
+HTTP Request
+GET {gamma-endpoint}/events/{id}
+
+Example Query
+/events/901289

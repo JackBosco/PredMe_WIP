@@ -1,0 +1,26 @@
+[build-system]
+requires = ["scikit-build-core>=0.9", "pybind11>=2.13.5"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "predme"
+version = "0.1.0"
+description = "PredMe server and native order book extension"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cryptography>=44.0.2",
+    "dotenv>=0.9.9",
+    "py-clob-client>=0.23.0",
+    "pydantic>=2.0",
+    "requests>=2.32.3",
+    "websocket>=0.2.1",
+    "websockets>=15.0.1",
+]
+
+[tool.scikit-build]
+wheel.expand-macos-universal-tags = true
+cmake.args = ["-DPYBIND11_FINDPYTHON=ON", "-DCMAKE_CXX_STANDARD=11"]
+cmake.source-dir = "cpp/orderbook"
+# ensure the Python package at ./server is included in the wheel
+wheel.packages = ["server"]
